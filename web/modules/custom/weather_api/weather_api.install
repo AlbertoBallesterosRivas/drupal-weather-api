@@ -1,0 +1,128 @@
+<?php
+
+use Drupal\Core\Database\Database;
+
+/**
+ * Implements hook_schema().
+ */
+function weather_api_schema() {
+  $schema['weather_data'] = [
+    'description' => 'Stores weather data from API calls',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique weather record ID',
+      ],
+      'city' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'City name',
+      ],
+      'country' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+        'description' => 'Country code',
+      ],
+      'latitude' => [
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 6,
+        'not null' => FALSE,
+        'description' => 'Latitude coordinate',
+      ],
+      'longitude' => [
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 6,
+        'not null' => FALSE,
+        'description' => 'Longitude coordinate',
+      ],
+      'temperature' => [
+        'type' => 'numeric',
+        'precision' => 5,
+        'scale' => 2,
+        'not null' => TRUE,
+        'description' => 'Temperature in Celsius',
+      ],
+      'feels_like' => [
+        'type' => 'numeric',
+        'precision' => 5,
+        'scale' => 2,
+        'not null' => FALSE,
+        'description' => 'Feels like temperature',
+      ],
+      'humidity' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Humidity percentage',
+      ],
+      'pressure' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Atmospheric pressure',
+      ],
+      'wind_speed' => [
+        'type' => 'numeric',
+        'precision' => 5,
+        'scale' => 2,
+        'not null' => FALSE,
+        'description' => 'Wind speed in m/s',
+      ],
+      'wind_direction' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Wind direction in degrees',
+      ],
+      'condition' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Weather condition description',
+      ],
+      'condition_code' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+        'description' => 'Weather condition code',
+      ],
+      'icon' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+        'description' => 'Weather icon identifier',
+      ],
+      'visibility' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Visibility in meters',
+      ],
+      'date' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Timestamp of weather record',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Timestamp when record was created',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'User ID who requested the weather data',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'city' => ['city'],
+      'date' => ['date'],
+      'created' => ['created'],
+      'uid' => ['uid'],
+    ],
+  ];
+  
+  return $schema;
+}

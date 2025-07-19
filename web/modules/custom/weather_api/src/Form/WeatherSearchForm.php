@@ -40,6 +40,8 @@ class WeatherSearchForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $city = $form_state->getValue('city');
+
+    // Redirect to controller with the entered city as route parameter.
     $form_state->setRedirect('weather_api.result', ['city' => $city]);
   }
 
