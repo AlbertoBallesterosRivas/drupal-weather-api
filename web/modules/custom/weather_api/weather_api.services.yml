@@ -1,0 +1,7 @@
+services:
+  weather_api.service:
+    class: Drupal\weather_api\Service\WeatherApiService
+    arguments:
+      - '@http_client'
+      - '@logger.factory'
+      - '@config.factory'

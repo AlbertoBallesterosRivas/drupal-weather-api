@@ -30,6 +30,12 @@
 /composer.lock
 /vendor/
 
+# DDEV local config
+.ddev/config.local.yaml
+
+# Include the example for the API key
+!.ddev/config.local.yaml.example
+
 # IDE and editor files
 /.idea/
 /.vscode/

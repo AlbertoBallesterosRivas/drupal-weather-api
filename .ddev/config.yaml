@@ -1,5 +1,5 @@
 name: drupal-weather-api
-type: drupal10
+type: drupal11
 docroot: web
 php_version: "8.3"
 webserver_type: nginx-fpm
@@ -11,7 +11,6 @@ database:
     version: "8.0"
 use_dns_when_possible: true
 composer_version: "2"
-web_environment: []
 corepack_enable: false
 default_container_timeout: "240"
 
