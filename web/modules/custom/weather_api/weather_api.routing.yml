@@ -1,7 +1,15 @@
-weather_api.weather:
+weather_api.search:
   path: '/weather'
   defaults:
+    _form: '\Drupal\weather_api\Form\WeatherSearchForm'
+    _title: 'Search Weather'
+  requirements:
+    _permission: 'access content'
+
+weather_api.result:
+  path: '/weather/{city}'
+  defaults:
     _controller: '\Drupal\weather_api\Controller\WeatherController::weatherPage'
-    _title: 'Weather Dashboard'
+    _title: 'Weather Result'
   requirements:
     _permission: 'access content'

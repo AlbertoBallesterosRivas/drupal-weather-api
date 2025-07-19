@@ -1,5 +1,5 @@
 services:
-  weather_api.service:
+  weather_api.weather_service:
     class: Drupal\weather_api\Service\WeatherApiService
     arguments:
       - '@http_client'

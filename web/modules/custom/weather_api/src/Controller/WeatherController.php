@@ -20,6 +20,9 @@ class WeatherController extends ControllerBase {
 
   /**
    * Constructs a WeatherController object.
+   *
+   * @param \Drupal\weather_api\Service\WeatherApiService $weather_api_service
+   *   The weather API service.
    */
   public function __construct(WeatherApiService $weather_api_service) {
     $this->weatherApiService = $weather_api_service;
@@ -35,10 +38,16 @@ class WeatherController extends ControllerBase {
   }
 
   /**
-   * Returns weather info for Madrid.
+   * Returns weather info for the given city.
+   *
+   * @param string $city
+   *   The city name.
+   *
+   * @return array
+   *   Render array.
    */
-  public function weatherPage(): array {
-    $data = $this->weatherApiService->getWeather('Madrid');
+  public function weatherPage(string $city): array {
+    $data = $this->weatherApiService->getWeather($city);
 
     if ($data === NULL) {
       return [
