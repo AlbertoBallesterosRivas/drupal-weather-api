@@ -6,7 +6,6 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\weather_api\Service\WeatherApiService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Session\AccountProxyInterface;
 
 /**
  * Returns weather data using WeatherApiService.

@@ -2,6 +2,7 @@
 
 namespace Drupal\weather_api\Service;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
@@ -26,11 +27,11 @@ class WeatherApiService {
   protected LoggerChannelFactoryInterface $loggerFactory;
 
   /**
-   * The OpenWeatherMap API key.
+   * The config factory.
    *
-   * @var string
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
-  protected string $apiKey;
+  protected ConfigFactoryInterface $configFactory;
 
   /**
    * Constructs the WeatherApiService object.
@@ -39,14 +40,35 @@ class WeatherApiService {
    *   The HTTP client.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   The logger factory.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
    */
   public function __construct(
     ClientInterface $http_client,
     LoggerChannelFactoryInterface $logger_factory,
+    ConfigFactoryInterface $config_factory,
   ) {
     $this->httpClient = $http_client;
     $this->loggerFactory = $logger_factory;
-    $this->apiKey = $_ENV['OPENWEATHER_API_KEY'];
+    $this->configFactory = $config_factory;
+  }
+
+  /**
+   * Gets the API key from configuration.
+   *
+   * @return string|null
+   *   The API key or NULL if not set.
+   */
+  protected function getApiKey(): ?string {
+    $config = $this->configFactory->get('weather_api.settings');
+    $api_key = $config->get('api_key');
+    
+    // Fallback to environment variable if not set in config
+    if (empty($api_key)) {
+      $api_key = $_ENV['OPENWEATHER_API_KEY'] ?? NULL;
+    }
+    
+    return $api_key;
   }
 
   /**
@@ -59,20 +81,41 @@ class WeatherApiService {
    *   Weather data array or NULL on failure.
    */
   public function getWeather(string $city): ?array {
+    $api_key = $this->getApiKey();
+    
+    if (empty($api_key)) {
+      $this->loggerFactory->get('weather_api')->error('No API key configured for Weather API.');
+      return NULL;
+    }
+
     try {
+      $config = $this->configFactory->get('weather_api.settings');
+      
       $url = 'https://api.openweathermap.org/data/2.5/weather';
       $params = [
         'q' => $city,
-        'appid' => $this->apiKey,
+        'appid' => $api_key,
+        'units' => $config->get('units') ?? 'metric',
+        'lang' => $config->get('language') ?? 'en',
       ];
 
       $response = $this->httpClient->get($url, ['query' => $params]);
 
       $data = json_decode($response->getBody(), TRUE);
 
+      if (!$data || !isset($data['name'])) {
+        $this->loggerFactory->get('weather_api')->warning('Invalid API response for city: @city', [
+          '@city' => $city,
+        ]);
+        return NULL;
+      }
+
       $formatted_weather_data = $this->formatWeatherData($data);
 
-      $this->saveWeatherData($formatted_weather_data);
+      // Only save if history is enabled
+      if ($config->get('features.history')) {
+        $this->saveWeatherData($formatted_weather_data);
+      }
 
       return $formatted_weather_data;
     }
@@ -132,6 +175,9 @@ class WeatherApiService {
       $this->loggerFactory->get('weather_api')->info('Weather data saved for city: @city', [
         '@city' => $weather_data['city'],
       ]);
+      
+      // Clean up old records
+      $this->cleanupOldRecords();
     }
     catch (\Exception $e) {
       $this->loggerFactory->get('weather_api')->error('Failed to save weather data: @message', [
@@ -139,4 +185,44 @@ class WeatherApiService {
       ]);
     }
   }
+
+  /**
+   * Clean up old weather records based on configuration.
+   */
+  protected function cleanupOldRecords(): void {
+    $config = $this->configFactory->get('weather_api.settings');
+    $max_age = $config->get('max_data_age') ?? 604800; // 7 days default
+    $max_records = $config->get('max_history_records') ?? 100;
+    
+    $connection = \Drupal::database();
+    
+    try {
+      // Delete records older than max_data_age
+      $old_timestamp = time() - $max_age;
+      $connection->delete('weather_data')
+        ->condition('created', $old_timestamp, '<')
+        ->execute();
+      
+      // Keep only the most recent records per user
+      $uid = \Drupal::currentUser()->id();
+      if ($uid) {
+        $subquery = $connection->select('weather_data', 'wd')
+          ->fields('wd', ['id'])
+          ->condition('uid', $uid)
+          ->orderBy('created', 'DESC')
+          ->range($max_records, PHP_INT_MAX);
+        
+        $connection->delete('weather_data')
+          ->condition('id', $subquery, 'IN')
+          ->condition('uid', $uid)
+          ->execute();
+      }
+    }
+    catch (\Exception $e) {
+      $this->loggerFactory->get('weather_api')->error('Failed to cleanup old records: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+    }
+  }
+
 }

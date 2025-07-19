@@ -3,6 +3,21 @@
 use Drupal\Core\Database\Database;
 
 /**
+ * Implements hook_install().
+ */
+function weather_api_install() {
+  
+  \Drupal::configFactory()->getEditable('weather_api.settings')
+    ->set('api_key', '')
+    ->set('default_city', 'Madrid')
+    ->set('cache_duration', 3600)
+    ->set('max_history_records', 100)
+    ->save();
+    
+  \Drupal::messenger()->addMessage(t('Weather API module installed successfully. Please configure your API key at /admin/config/services/weather-api'));
+}
+
+/**
  * Implements hook_schema().
  */
 function weather_api_schema() {
@@ -62,7 +77,7 @@ function weather_api_schema() {
       'pressure' => [
         'type' => 'int',
         'not null' => FALSE,
-        'description' => 'Atmospheric pressure',
+        'description' => 'atmospheric pressure',
       ],
       'wind_speed' => [
         'type' => 'numeric',

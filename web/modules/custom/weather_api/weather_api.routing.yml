@@ -6,6 +6,14 @@ weather_api.search:
   requirements:
     _permission: 'access content'
 
+weather_api.settings:
+  path: '/weather-api'
+  defaults:
+    _form: '\Drupal\weather_api\Form\WeatherSettingsForm'
+    _title: 'Weather API Settings'
+  requirements:
+    _permission: 'access content'
+
 weather_api.result:
   path: '/weather/{city}'
   defaults:

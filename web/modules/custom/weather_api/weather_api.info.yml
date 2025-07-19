@@ -4,3 +4,4 @@ description: 'Weather API module with responsive design'
 core_version_requirement: ^11
 package: Weather API
 version: 1.0.0
+configure: weather_api.settings
